@@ -29,54 +29,24 @@ class Apicaller(commands.Cog):
 	#main tasks
 	@tasks.loop(seconds= 60)	
 	async def get_user_status(self):
-		
 
-		wlist = getWatchlist()
 
-		for userid in wlist:
-			h = await gethabbo(userid)
+		for item in self.bot.database.db.items():
+			h = await gethabbo(item[0])
 			if h is not None:
-				if h['status'] != bool(wlist[userid]['status']):
-					wlist[userid]['status'] = h['status']
-					for channelid in wlist[userid]['channels']:
-						await send_online_update(self.bot,int(channelid), h['name'], bool(h['status']))
-
-		setWatchlist(wlist)
-
-
-
-
-
-
-
-
-
-
-
-
-		# for channelid in wlist:
-		# 	for userdict in wlist[channelid]:
-		# 		id = userdict['id']
-
-				
-		# 		h = await gethabbo(id)
-		# 		if h is not None:
-		# 			if h['status'] != bool(userdict['status']):
-		# 				#func to send online status embed message
-
-		# 				userdict['status'] = h['status']
-
-		# 				await send_online_update(self.bot,int(channelid), h['name'], bool(h['status']))
-		# 			#this part is unnecessary. turns out private profiles arte not indexed so this whole thing is pointless
-		# 			elif h['viewprofile'] != bool(userdict['viewprofile']):
-						
-		# 				userdict['viewprofile'] = h['viewprofile']
-
-		# 				await send_view_profile_update(self.bot,int(channelid), h['name'], bool(h['viewprofile']))
-
-		# setWatchlist(wlist)
-
-
+				if h['status'] != bool(item[1]['status']):
+					item[1]['status'] = h['status']
+					for channelid in item[1]['channels']:
+						try:
+							await send_online_update(self.bot,int(channelid), h['name'], bool(h['status']))
+						except:
+							print('error sending message on channel: ' + channelid)
+					self.bot.database.insert_user(item[1], item[0])
+	
+ 
+	@commands.Cog.listener()
+	async def on_guild_channel_delete(self, channel):
+		self.bot.database.clean_channel(channel.id)
 
 
 
@@ -87,7 +57,6 @@ def setup(bot):
 
 
 
-# {'userid' : {'name' : 'ashjdgajsd', 'channels' : [1232131,123123123], 'status' : true}}
 
 
 

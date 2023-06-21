@@ -1,7 +1,9 @@
 import httpx
 import discord
 from discord.ext import commands
+from Utils.dbUtils import DbUtil
 import os, json
+
 
 
 intents = discord.Intents.default()
@@ -11,6 +13,8 @@ intents.members = True
 bot = commands.Bot(command_prefix='?', intents = intents)
 
 bot.remove_command('help')
+
+bot.database = DbUtil("data.sqlite", tablename="Watchlist")
 
 if __name__ == '__main__':
 	for filename in os.listdir('Cogs'):

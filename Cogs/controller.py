@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from Utils.discordUtils import getWatchlist, setWatchlist
+from Utils.discordUtils import getWatchlist, setWatchlist, gethabbo
 import httpx
 import datetime
 import asyncio
@@ -26,76 +26,69 @@ class ControllerCog(commands.Cog):
 
 		await ctx.response.defer()
 		
-		try:
-			async with httpx.AsyncClient() as client:
-				r =  await client.get(url = f'{BASE_URL}/{USER_URL}', params = {'name' : username})
-				user = r.json()
-				print(user)
-				id = user['uniqueId']
-		except:
-			print(f'Error getting user from username {username}')
-			id =  None
 
-		if id is None:
+		user = await gethabbo(username)
+
+		if user is None:
 			await ctx.followup.send(f'Unable to find user with the username {username}. Please verify if username is correct')
 		else:
 			await ctx.followup.send(f"{username} added to this channel's watchlist.")
-			wlist = getWatchlist()
-
-			if id in wlist.keys():
-				wlist[id]['channels'].append(ctx.channel_id)
-			else:
-				wlist[id] = {'name' : username,
-							 'channels' : [ctx.channel_id],
-							 'status' : False}
-
-			setWatchlist(wlist)
+			user['channels'] = [ctx.channel_id]
+			self.bot.database.insert_user(user)
+   
 
 
 	@watchlistgroup.command()
 	async def remove(self, ctx:discord.ApplicationContext, username : str):
 
 		await ctx.response.defer()
-		await asyncio.sleep(1)
 
-		wlist = getWatchlist()
-		try:
-			for key, value in wlist.items():
+		user = self.bot.database.get_user(username)
+  
+		if user is not None:
+			try:
+				user['channels'].remove(ctx.channel_id)
+				if len(user['channels']) == 0:
+					self.bot.database.cleanup_user(username)
+				else:
+					self.bot.database.insert_user(user, name=username)
+				await ctx.followup.send(f"{username} removed from this channel's watchlist", ephemeral=True)
+			except KeyError:
+				await ctx.followup.send(f"{username} is not on this channel's watchlist", ephemeral=True)
 
-				if value['name'] == username :
-					try:
-						value['channels'].remove(ctx.channel_id)
-						if len(value['channels']) == 0:
-							wlist.pop(key)
-
-						await ctx.followup.send(f"{username} removed from this channel's watchlist")
-						setWatchlist(wlist)
-						break
-					except:
-						await ctx.followup.send(f"{username} is not on this channel's watchlist")
-						break
-		except:
-			await ctx.followup.send(f"{username} is not on this channel's watchlist")
-
-
-			
+  	
 
 	@watchlistgroup.command()
 	async def list(self, ctx:discord.ApplicationContext):
 
 		await ctx.response.defer()
-		await asyncio.sleep(1)
-		wlist = getWatchlist()
+  
 		try:
-			username_list = [wlist[item]['name'] for item in wlist if ctx.channel_id in wlist[item]['channels']]
+			db = self.bot.database.db.items()
+			usernamelist = [item[0]for item in db if ctx.channel_id in item[1]['channels']]
+			usernamelist.sort(key=str.lower)
 
-			embed = discord.Embed(title="Watchlist for this channel", description = '\n'.join(username_list), color = discord.Color.random())
+			embed = discord.Embed(title="Watchlist for this channel", description = '\n'.join(usernamelist), color = discord.Color.random())
 			embed.set_footer(icon_url= self.bot.user.avatar, text= f'{self.bot.user.name} . {datetime.datetime.utcnow()}')
 			await ctx.followup.send(embed=embed)
 		except KeyError:
 			await ctx.followup.send("Watchlist is empty.")
+  
+	@watchlistgroup.command()
+	async def cleanup(self, ctx:discord.ApplicationContext):
 
-		
+		await ctx.response.defer()
+
+		channellist = [channel.id for channel in self.bot.get_all_channels()]
+		db = self.bot.database.db
+		counter = 0
+		for item in db.items():
+			for channelid in item[1]['channels']:
+				if channelid not in channelid:
+					self.bot.database.clean_channel(channelid)
+					counter += 1
+		await ctx.followup.send(f"{counter} number of invalid channel references cleaned", ephemeral=True)
+
 
 
 #-----setup------#

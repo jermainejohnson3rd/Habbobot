@@ -29,21 +29,22 @@ def setWatchlist(wlist : dict):
 	with open('watchlist.json', 'w') as f:
 		json.dump(wlist, f)
 
-async def gethabbo(id):
-
+async def gethabbo(username : str):
+		print('inside gethabbo  ' + username)
 		try:
 			async with httpx.AsyncClient() as client:
-				r = await client.get(url= f'{BASE_URL}/{USER_URL}/{id}/profile')
+				r = await client.get(url= f'{BASE_URL}/{USER_URL}', params= {'name' : username})
 				data = r.json()
+			print(data)
 			
-			final = {'id' : data['user']['uniqueId'],
-					 'status' : bool(data['user']['online']),
-					 'name' : data['user']['name'],
-					 'viewprofile' : bool(data['user']['profileVisible'])}
+			final = {'status' : bool(data['online']),
+					 'name' : data['name'],
+					 }
 			
 			return final
 		except:
-			print(f'Error retrieving habbo profile from api. profile id {id} --- ')
+			print(f'Error retrieving habbo profile from api. profile id {username} --- ')
+			return None
 
 
 async def send_online_update(bot, channelid : int, username : str, status : bool ):
