@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from Utils.discordUtils import getWatchlist, setWatchlist, gethabbo
+from Utils.discordUtils import  gethabbo
 import httpx
 import datetime
 import asyncio
@@ -32,9 +32,16 @@ class ControllerCog(commands.Cog):
 		if user is None:
 			await ctx.followup.send(f'Unable to find user with the username {username}. Please verify if username is correct')
 		else:
-			await ctx.followup.send(f"{username} added to this channel's watchlist.")
-			user['channels'] = [ctx.channel_id]
-			self.bot.database.insert_user(user)
+			dbUser = self.bot.database.get_user(username)
+			if dbUser is None:
+				await ctx.followup.send(f"{username} added to this channel's watchlist.")
+				user['channels'] = [ctx.channel_id]
+				self.bot.database.insert_user(user)
+			else:
+				await ctx.followup.send(f"{username} added to this channel's watchlist.")
+				dbUser['channels'].append(ctx.channel_id)
+				self.bot.database.insert_user(dbUser)
+			
    
 
 
