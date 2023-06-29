@@ -26,6 +26,7 @@ if __name__ == '__main__':
 async def on_ready():
 	print(f'Logged in as botuser {bot.user}')
 	print(f'discord version {discord.__version__}')
+	
 
 
 

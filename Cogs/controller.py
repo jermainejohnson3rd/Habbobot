@@ -34,13 +34,15 @@ class ControllerCog(commands.Cog):
 		else:
 			dbUser = self.bot.database.get_user(username)
 			if dbUser is None:
+				
 				await ctx.followup.send(f"{username} added to this channel's watchlist.")
 				user['channels'] = [ctx.channel_id]
 				self.bot.database.insert_user(user)
+				
 			else:
 				await ctx.followup.send(f"{username} added to this channel's watchlist.")
 				dbUser['channels'].append(ctx.channel_id)
-				self.bot.database.insert_user(dbUser)
+				self.bot.database.insert_user(dbUser, name=username)
 			
    
 
