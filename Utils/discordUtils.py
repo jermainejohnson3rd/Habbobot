@@ -30,7 +30,7 @@ def setWatchlist(wlist : dict):
 		json.dump(wlist, f)
 
 async def gethabbo(username : str):
-		print('inside gethabbo  ' + username)
+		
 		try:
 			async with httpx.AsyncClient() as client:
 				r = await client.get(url= f'{BASE_URL}/{USER_URL}', params= {'name' : username})
