@@ -40,7 +40,7 @@ class Apicaller(commands.Cog):
 						try:
 							await send_online_update(self.bot,int(channelid), h['name'], bool(h['status']))
 						except:
-							print('error sending message on channel: ' + channelid)
+							print('error sending message on channel')
 					self.bot.database.insert_user(item[1], item[0])
 	
  
