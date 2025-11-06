@@ -1,0 +1,11 @@
+venv
+.pyc
+Utils/__pycache__/discordUtils.cpython-311.pyc
+Utils/__pycache__/dbUtils.cpython-311.pyc
+Untitled document.pdf
+habbobot.rar
+data.sqlite
+data-Watchlist-1-value
+Cogs/__pycache__/controller.cpython-311.pyc
+Cogs/__pycache__/apicaller.cpython-311.pyc
+Utils/__pycache__/discordUtils.cpython-311.pyc
