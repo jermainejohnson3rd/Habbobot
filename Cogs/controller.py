@@ -38,11 +38,10 @@ class ControllerCog(commands.Cog):
             thread = await ctx.channel.create_thread(
                 name=username
             )
-            thread.send(content=f'<@&1435727697048371312> User **{username}** has been added to the Watchlist. You may track their log in/out times here.')
+            await thread.send(content=f'<@&1435727697048371312> User **{username}** has been added to the Watchlist. You may track their log in/out times here.')
             thread_id_to_store = thread.id
         
         # --- End of thread determination logic ---
-        
         dbUser = self.bot.database.get_user(username)
         
         if dbUser is None:
@@ -115,13 +114,7 @@ class ControllerCog(commands.Cog):
                     counter += 1
         await ctx.followup.send(f"{counter} number of invalid channel references cleaned", ephemeral=True)
 
-
-
 #-----setup------#
 
 def setup(bot):
     bot.add_cog(ControllerCog(bot))
-
-
-
-
